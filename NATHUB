@@ -1,0 +1,5 @@
+-- Combined Loader
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Petspawner1/LOADINGSCREEN/refs/heads/main/LOADING%20SCREENV2"))()
+task.delay(5, function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Petspawner1/GrowaGarden/refs/heads/main/Main.script"))()
+end)
